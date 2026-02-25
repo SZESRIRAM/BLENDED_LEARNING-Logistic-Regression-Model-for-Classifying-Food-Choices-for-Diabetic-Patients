@@ -16,94 +16,74 @@ To implement a logistic regression model to classify food items for diabetic pat
 
 ## Program:
 ```
-# Importing necessary libraries
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import Ridge, Lasso, ElasticNet
-from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
 
 # Load the dataset
-data = pd.read_csv("encoded_car_data.csv")
-data.head()
+df = pd.read_csv("food_items.csv")
 
-# Data preprocessing
-data = pd.get_dummies(data, drop_first=True)
-
-# Splitting the data into features and target variable
-X = data.drop('price', axis=1)
-y = data['price']
-
-# Standardizing the features
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
-y = scaler.fit_transform(y.values.reshape(-1, 1))
-
-# Splitting the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Define the models and pipelines
-models = {
-    "Ridge": Ridge(alpha=1.0),
-    "Lasso": Lasso(alpha=1.0),
-    "ElasticNet": ElasticNet(alpha=1.0, l1_ratio=0.5)
-}
-
-# Dictionary to store results
-results = {}
-
-# Train and evaluate each model
-for name, model in models.items():
-    pipeline = Pipeline([
-        ('poly', PolynomialFeatures(degree=2)),
-        ('regressor', model)
-    ])
-
-    pipeline.fit(X_train, y_train)
-    predictions = pipeline.predict(X_test)
-
-    mse = mean_squared_error(y_test, predictions)
-    r2 = r2_score(y_test, predictions)
-
-    results[name] = {'MSE': mse, 'R2 Score': r2}
-
-# Print results
+# Inspect the dataset
 print("Name:Ponsriram P ")
 print("Reg. No:212225240105 ")
-for model_name, metrics in results.items():
-    print(f"{model_name} - Mean Squared Error: {metrics['MSE']:.2f}, R2 Score: {metrics['R2 Score']:.2f}")
+print("Dataset Overview:")
+print(df.head())
+print("\nDataset Info:")
+print(df.info())
 
-# Visualization of the results
-results_df = pd.DataFrame(results).T
-results_df.reset_index(inplace=True)
-results_df.rename(columns={'index': 'Model'}, inplace=True)
+X_raw = df.iloc[:, :-1]
+y_raw = df.iloc[:, -1:]
 
-plt.figure(figsize=(12, 5))
+scaler = MinMaxScaler()
+X = scaler.fit_transform(X_raw)
 
-# Bar plot for MSE
-plt.subplot(1, 2, 1)
-sns.barplot(x='Model', y='MSE', data=results_df, palette='viridis')
-plt.title('Mean Squared Error (MSE)')
-plt.ylabel('MSE')
-plt.xticks(rotation=45)
+label_encoder = LabelEncoder()
+y = label_encoder.fit_transform(y_raw.values.ravel())
 
-# Bar plot for R2 Score
-plt.subplot(1, 2, 2)
-sns.barplot(x='Model', y='R2 Score', data=results_df, palette='viridis')
-plt.title('R2 Score')
-plt.ylabel('R2 Score')
-plt.xticks(rotation=45)
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=123
+)
 
-plt.tight_layout()
-plt.show()
+# Model parameters
+penalty = 'l2'
+multi_class = 'multinomial'
+solver = 'lbfgs'
+max_iter = 1000
+
+# Define logistic regression model
+l2_model = LogisticRegression(
+    random_state=123,
+    penalty=penalty,
+    multi_class=multi_class,
+    solver=solver,
+    max_iter=max_iter
+)
+
+l2_model.fit(X_train, y_train)
+
+y_pred = l2_model.predict(X_test)
+
+# Evaluate the model
+print("\nModel Evaluation:")
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+print(conf_matrix)
 ```
 
 ## Output:
-<img width="1269" height="617" alt="image" src="https://github.com/user-attachments/assets/a7db1f5c-240a-4e1d-9149-0dcb0b19c2f3" />
+<img width="847" height="656" alt="image" src="https://github.com/user-attachments/assets/0a0879b8-c200-4a09-a7e4-4f8cc62a1e25" />
+
+<img width="733" height="650" alt="image" src="https://github.com/user-attachments/assets/4046654b-aebb-4a54-ac0c-ec344a9e2c93" />
+<img width="591" height="316" alt="image" src="https://github.com/user-attachments/assets/bea1f4ba-75dd-4279-beaf-1009aac7bed0" />
+
 
 
 
